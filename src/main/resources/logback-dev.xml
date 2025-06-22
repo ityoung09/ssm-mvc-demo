@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+    <!-- 定义日志文件存储路径，使用相对路径 logs -->
+    <property name="LOG_PATH" value="/Users/ityoung/Documents/ProjectDemo/ssm-mvc-demo/logs"/>
+
+    <!-- 控制台输出配置 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 开发环境配置 -->
+    <root level="DEBUG">
+        <appender-ref ref="console"/>
+    </root>
+    <logger name="com.kedaya.controller" level="INFO"/>
+    <logger name="com.kedaya.service" level="DEBUG"/>
+    <logger name="com.kedaya.mapper" level="DEBUG"/>
+    <logger name="com.kedaya.task" level="DEBUG"/>
+</configuration>

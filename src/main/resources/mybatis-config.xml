@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!-- 设置区：配置核心行为 -->
+    <settings>
+        <!-- 开启驼峰命名自动映射 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 日志实现（控制台输出） -->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <!-- 启用懒加载 -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- 是否按需加载（默认全部加载） -->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!-- 本地缓存范围（SESSION或STATEMENT） -->
+        <setting name="localCacheScope" value="SESSION"/>
+    </settings>
+
+    <!-- 类型别名配置：简化Mapper XML里的类名 -->
+    <typeAliases>
+        <!-- 扫描实体包，类名即为别名 -->
+        <package name="com.kedaya.entity"/>
+    </typeAliases>
+
+    <!-- 插件配置（分页、性能分析等） -->
+    <plugins>
+        <!-- PageHelper 插件（适配 MySQL） -->
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <property name="helperDialect" value="mysql"/>
+            <property name="reasonable" value="true"/>
+            <property name="supportMethodsArguments" value="true"/>
+            <property name="params" value="count=countSql"/>
+        </plugin>
+    </plugins>
+
+    <!-- 全局二级缓存配置（默认关闭，可启用） -->
+    <!--
+    <cache>
+        <property name="eviction" value="LRU"/>
+        <property name="flushInterval" value="60000"/>
+        <property name="size" value="512"/>
+        <property name="readOnly" value="false"/>
+    </cache>
+    -->
+
+    <!-- 可选：配置类型处理器（TypeHandler） -->
+    <!--
+    <typeHandlers>
+        <package name="com.kedaya.config.typehandler"/>
+    </typeHandlers>
+    -->
+
+</configuration>

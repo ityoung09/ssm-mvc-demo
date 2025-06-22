@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <!-- 扫描指定包，自动注册@Service、@Repository、@Component等注解标注的Bean -->
+    <context:component-scan base-package="com.kedaya.service,com.kedaya.mapper,com.kedaya.task"/>
+
+    <!-- 读取外部的数据库配置文件 -->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!-- 配置Druid数据源 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <!-- 数据库驱动 -->
+        <property name="driverClassName" value="${jdbc.driverClass}"/>
+        <!-- 数据库连接URL -->
+        <property name="url" value="${jdbc.url}"/>
+        <!-- 用户名 -->
+        <property name="username" value="${jdbc.username}"/>
+        <!-- 密码 -->
+        <property name="password" value="${jdbc.password}"/>
+        <!-- 初始化连接池大小 -->
+        <property name="initialSize" value="5"/>
+        <!-- 最小空闲连接数 -->
+        <property name="minIdle" value="5"/>
+        <!-- 最大连接数 -->
+        <property name="maxActive" value="20"/>
+        <!-- 获取连接等待超时时间 -->
+        <property name="maxWait" value="60000"/>
+        <!-- 间隔多久进行一次检测，检测需要关闭的空闲连接 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <!-- 一个连接在连接池中最小生存时间 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <!-- 检测连接是否有效的SQL -->
+        <property name="validationQuery" value="SELECT 1"/>
+        <!-- 空闲时检查连接是否可用 -->
+        <property name="testWhileIdle" value="true"/>
+        <!-- 申请连接时不检测连接是否可用（提升性能） -->
+        <property name="testOnBorrow" value="false"/>
+        <!-- 归还连接时不检测连接是否可用 -->
+        <property name="testOnReturn" value="false"/>
+        <!-- 是否缓存PreparedStatement -->
+        <property name="poolPreparedStatements" value="true"/>
+        <!-- 每个连接最多缓存多少个PreparedStatement -->
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20"/>
+    </bean>
+
+    <!-- 配置MyBatis的SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定MyBatis的核心配置文件 -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!-- 指定Mapper XML文件所在位置 -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+
+    <!-- 扫描指定包下的接口，为其自动生成代理实现类 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定Mapper接口所在包 -->
+        <property name="basePackage" value="com.kedaya.mapper"/>
+        <!-- 关联使用的sqlSessionFactory -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!-- 配置Spring的事务管理器，使用JDBC的数据源 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 声明式事务配置 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!-- 以下方法将开启事务，传播行为为REQUIRED（必须在事务中运行） -->
+            <tx:method name="add*" propagation="REQUIRED"/>
+            <tx:method name="save*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <!-- 以下方法为只读事务，适用于查询操作 -->
+            <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+            <tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+            <!-- 默认所有其他方法也启用事务 -->
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- AOP配置：将事务切入service层所有方法 -->
+    <aop:config>
+        <!-- 定义切入点，拦截service包下所有类的所有方法 -->
+        <aop:pointcut id="txPointcut" expression="execution(* com.kedaya.service.*.*(..))"/>
+        <!-- 将事务增强应用到上述切入点 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+    </aop:config>
+
+    <!-- 添加这个配置来启用@Scheduled注解 -->
+    <task:annotation-driven/>
+
+</beans>
